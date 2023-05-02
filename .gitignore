@@ -1,4 +1,6 @@
-go.mod
-go.sum
+*.mod
+*.sum
 *.json
-
+*.swp
+*.swo
+*.DS_STORE
