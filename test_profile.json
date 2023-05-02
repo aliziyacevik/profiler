@@ -1,11 +1,24 @@
-{
-  "method": "GET",
-  "url": "/test",
-  "browser": "Unknown",
-  "header": {
-    "Accept-Encoding": "gzip",
-    "User-Agent": "Go-http-client/1.1"
+[
+  {
+    "method": "GET",
+    "url": "/test",
+    "browser": "Unknown",
+    "header": {
+      "Accept-Encoding": "gzip",
+      "User-Agent": "Go-http-client/1.1"
+    },
+    "ip": "[::1]:55960",
+    "received": "05-02-23 - 22:25"
   },
-  "ip": "[::1]:55673",
-  "received": "05-02-23 - 21:51"
-}
+  {
+    "method": "GET",
+    "url": "/test",
+    "browser": "Unknown",
+    "header": {
+      "Accept-Encoding": "gzip",
+      "User-Agent": "Go-http-client/1.1"
+    },
+    "ip": "[::1]:55965",
+    "received": "05-02-23 - 22:25"
+  }
+]

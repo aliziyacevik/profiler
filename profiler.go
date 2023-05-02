@@ -50,12 +50,27 @@ func loadConfig(configFile string) (Config, error) {
 }
 
 func writeRequestInfoToFile(requestInfo *RequestInfo, fileName string) error {
-	data, err := json.MarshalIndent(requestInfo, "", "  ")
+	data, err := os.ReadFile(fileName)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	var requestInfos []RequestInfo
+	if len(data) > 0 {
+		err = json.Unmarshal(data, &requestInfos)
+		if err != nil {
+			return err
+		}
+	}
+
+	requestInfos = append(requestInfos, *requestInfo)
+
+	updatedData, err := json.MarshalIndent(requestInfos, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(fileName, data, 0644)
+	err = os.WriteFile(fileName, updatedData, 0644)
 	if err != nil {
 		return err
 	}
