@@ -20,6 +20,8 @@ type Config struct {
 	OutFile      string
 	OutFormat    string
 	TargetServer string
+	BufferedWrite  bool 
+
 }
 
 type RequestInfo struct {
@@ -42,10 +44,14 @@ func loadConfig(configFile string) (Config, error) {
 		return Config{}, err
 	}
 
+	bufferedWrite, _ := strconv.ParseBool(os.Getenv("BUFFERED_WRITE"))
+
 	return Config{
-		Port:      port,
-		OutFile:   os.Getenv("OUT_FILE"),
-		OutFormat: os.Getenv("OUT_FORMAT"),
+		Port:          port,
+		OutFile:       os.Getenv("OUT_FILE"),
+		OutFormat:     os.Getenv("OUT_FORMAT"),
+		TargetServer:  os.Getenv("TARGET_SERVER"),
+		BufferedWrite: bufferedWrite,
 	}, nil
 }
 
@@ -98,6 +104,7 @@ func getBrowser(userAgent string) string {
 	return "Unknown"
 }
 
+
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Println("Usage: ./profiler [profiler.config]")
@@ -109,10 +116,14 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	go processBufferedRequests(config.OutFile)
+	if config.BufferedWrite {
+		go processBufferedRequests(config.OutFile)
+	}
 
 	startProfilerServer(config)
 }
+
+
 func startProfilerServer(config Config) {
 	targetURL, err := url.Parse(config.TargetServer)
 	if err != nil {
@@ -139,15 +150,24 @@ func startProfilerServer(config Config) {
 			Browser:  browser,
 			Received: received,
 		}
-		requestInfoBuffer <- requestInfo
-		fmt.Printf("Request info saved to %s", config.OutFile)
-	
-		proxy.ServeHTTP(w, r)
 
+		if config.BufferedWrite {
+			requestInfoBuffer <- requestInfo
+		} else {
+			err := writeRequestInfoToFile([]RequestInfo{requestInfo}, config.OutFile)
+			if err != nil {
+				log.Printf("Failed to write request info to file: %v", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+		}
+		fmt.Printf("Request info saved to %s", config.OutFile)
+
+		proxy.ServeHTTP(w, r)
 	})
 
 	address := fmt.Sprintf(":%d", config.Port)
 	log.Printf("Listening on %s", address)
 	log.Fatal(http.ListenAndServe(address, nil))
-
 }
+

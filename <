@@ -1,0 +1,23 @@
+set hlsearch 
+set incsearch
+
+syntax on
+set autoread <
+
+set number
+
+set wrap
+
+set laststatus=2
+
+set nobackup
+set nowb
+set noswapfile
+
+
+map ,k VdkP
+map ,j VdjP
+
+
+map fmt :!go fmt .
+map tn :tabnew
