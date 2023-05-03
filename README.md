@@ -59,6 +59,6 @@ Adjust the values as needed:
 ./profiler config.env
 ```
 
-##Usage
+## Usage
 
 Send an HTTP request to the Profiler server at http://localhost:PORT/your-path. The server will profile the request and save the information to the specified output file, then forward the request to the target server.
