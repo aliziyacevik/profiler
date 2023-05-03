@@ -139,15 +139,9 @@ func startProfilerServer(config Config) {
 			Browser:  browser,
 			Received: received,
 		}
-
-		err := writeRequestInfoToFile(&requestInfo, config.OutFile)
-		if err != nil {
-			log.Printf("Failed to write request info to file: %v", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
+		requestInfoBuffer <- requestInfo
 		fmt.Printf("Request info saved to %s", config.OutFile)
-
+	
 		proxy.ServeHTTP(w, r)
 
 	})
