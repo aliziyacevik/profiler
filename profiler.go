@@ -49,28 +49,36 @@ func loadConfig(configFile string) (Config, error) {
 	}, nil
 }
 
-func writeRequestInfoToFile(requestInfo *RequestInfo, fileName string) error {
-	data, err := os.ReadFile(fileName)
-	if err != nil && !os.IsNotExist(err) {
-		return err
-	}
+const bufferSize = 100
 
+var requestInfoBuffer = make(chan RequestInfo, bufferSize)
+
+func processBufferedRequests(fileName string) {
 	var requestInfos []RequestInfo
-	if len(data) > 0 {
-		err = json.Unmarshal(data, &requestInfos)
-		if err != nil {
-			return err
+
+	for reqInfo := range requestInfoBuffer {
+		requestInfos = append(requestInfos, reqInfo)
+
+		// Write to file when the buffer reaches a certain size or after a certain duration
+		if len(requestInfos) >= bufferSize {
+			err := writeRequestInfoToFile(requestInfos, fileName)
+			if err != nil {
+				log.Printf("Failed to write request info to file: %v", err)
+			} else {
+				log.Printf("Request info saved to %s", fileName)
+			}
+			requestInfos = requestInfos[:0]
 		}
 	}
+}
 
-	requestInfos = append(requestInfos, *requestInfo)
-
-	updatedData, err := json.MarshalIndent(requestInfos, "", "  ")
+func writeRequestInfoToFile(requestInfos []RequestInfo, fileName string) error {
+	data, err := json.MarshalIndent(requestInfos, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(fileName, updatedData, 0644)
+	err = os.WriteFile(fileName, data, 0644)
 	if err != nil {
 		return err
 	}
@@ -100,6 +108,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
+
+	go processBufferedRequests(config.OutFile)
 
 	startProfilerServer(config)
 }
