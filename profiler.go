@@ -161,7 +161,7 @@ func startProfilerServer(config Config) {
 				return
 			}
 		}
-		fmt.Printf("Request info saved to %s", config.OutFile)
+		fmt.Printf("Request info saved to %s\n", config.OutFile)
 
 		proxy.ServeHTTP(w, r)
 	})
